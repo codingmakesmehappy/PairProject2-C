@@ -20,8 +20,15 @@ struct WordCountResult {
 	struct WordCountWordAppear *wordAppears;
 };
 
+struct WordCountConfig {
+	const char* in;
+	bool statByPharse = false;
+	size_t pharseSize = 0;
+	bool useDifferentWeight = false;
+};
 
-EXTERN WordCountResult CalculateWordCount(const char* fileName);
+
+EXTERN WordCountResult CalculateWordCount(struct WordCountConfig config);
 EXTERN void ClearWordAppear(WordCountResult* resultStruct);
 
 #undef EXTERN
