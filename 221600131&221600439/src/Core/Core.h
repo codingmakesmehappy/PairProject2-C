@@ -16,7 +16,7 @@ struct WordCountResult {
 	size_t lines = 0;
 	size_t words = 0;
 	size_t characters = 0;
-	size_t uniqueWords = 0;
+	size_t uniqueWordsOrPharses = 0;
 	struct WordCountWordAppear *wordAppears;
 };
 
