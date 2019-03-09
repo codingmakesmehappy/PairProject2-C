@@ -152,6 +152,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="CLI11.hpp" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
