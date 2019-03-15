@@ -23,74 +23,48 @@ def crawl(locker,data,prelink,url):
     try:
         response = requests.get(url,headers=headers)
         text = response.text
-        pdfs,abstracts,authors,titles,books,months,years=data
+        titles,abstracts=data
 
         html=etree.HTML(text)
-        author=html.xpath('//i/text()')[0]
-        pdf = html.xpath('//a[contains(text(),"pdf")]/@href')[0]
-        pdf = prelink + pdf[6:]
+        title=html.xpath('//div[@id="papertitle"]/text()')[0]
         abstract=html.xpath('//div[@id="abstract"]/text()')[0]
+        title=title[1:]
         abstract=abstract[1:]
-        
-        soup=BeautifulSoup(text,'lxml')
-        detail=soup.find(class_="bibref")
 
-        regex='(\w+) = {([\S\xa0 ]+)}'
-        results = re.findall(regex,detail.getText())
-        title = results[1][1]
-        book = results[2][1]
-        month = results[3][1]
-        year = results[4][1]
+        
         locker.acquire()  #获取锁
-
-        authors.append(author)
-        pdfs.append(pdf)
-        abstracts.append(abstract)
         titles.append(title)
-        books.append(book)
-        months.append(month)
-        years.append(year)
-        
+        abstracts.append(abstract)
         locker.release()
     except ConnectionError:
         print('Error!',url)
-    #finally:
-        #print(url,'successed')
+    finally:
+        print(url,'successed')
 
 if __name__ == '__main__':
     start = time.clock()
     url='http://openaccess.thecvf.com/CVPR2018.py'
     prelink='http://openaccess.thecvf.com/'
     urls=geturl(url,prelink)
-
+    
     pool = Pool(processes=32)
     manager = Manager()
     locker = manager.Lock()
 
-    authors=manager.list()
-    pdfs=manager.list()
-    abstracts=manager.list()
     titles=manager.list()
-    books=manager.list()
-    months=manager.list()
-    years = manager.list()
+    abstracts=manager.list()
+    data = (titles,abstracts)
 
-    data = (pdfs,abstracts,authors,titles,books,months,years)
+    scrape = partial(crawl,locker,data,prelink)  #偏函数
+    pool.map(scrape,urls)
 
-    p_crawl = partial(crawl,locker,data,prelink)
-    pool.map(p_crawl,urls)
-
-    elapsed = (time.clock()-start)
+    elapsed = time.clock()-start
     print("Time used: ",elapsed)
 
     with open('result.txt', 'w', encoding='utf-8') as file:
         for i in range(len(titles)):
             file.write(str(i) + '\n')
             file.write('Title: '  + titles[i] + '\n')
-            #file.write('Authors: ' + authors[i] + '\n')
             file.write('Abstract: ' + abstracts[i] + '\n')
-            #file.write('Book: ' + books[i] + '\n')
-            #file.write('PDF: ' + pdfs[i] + '\n')
-            #file.write('Time: ' +years[i] + ' ' + months[i])
             file.write('\n\n')
     
